@@ -59,12 +59,12 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	<hr />
 
-	<h2>Insert Values into DemoTable</h2>
+	<h2>Insert Restaurant Review</h2>
 	<form method="POST" action="main.php">
 		<input type="hidden" id="insertQueryRequest" name="insertQueryRequest">
-		Number: <input type="text" name="insNo"> <br /><br />
-		Name: <input type="text" name="insName"> <br /><br />
-
+		Restaurant: <input type="text" name="restaurantID"> <br /><br />
+		Score: <input type="text" name="score"> <br /><br />
+		Comment: <textarea id="comment" name="comment" rows="4" cols="50"> </textarea> <br /><br />
 		<input type="submit" value="Insert" name="insertSubmit"></p>
 	</form>
 
@@ -172,6 +172,15 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		}
 	}
 
+	function executeFileSQL($filepath)
+	{
+		$filecontents = file_get_contents($filepath);
+		$sqlStatements = explode(";", $filecontents);
+		foreach ($sqlStatements as $sqlStatement) {
+			executePlainSQL($sqlStatement);
+		}	
+	}
+
 	function printResult($result)
 	{ //prints results from a select statement
 		echo "<br>Retrieved data from table demoTable:<br>";
@@ -230,11 +239,13 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	{
 		global $db_conn;
 		// Drop old table
-		executePlainSQL("DROP TABLE demoTable");
+		echo "<br> Dropping Old Tables <br>";
+		executeFileSQL("dropTables.sql");
 
 		// Create new table
-		echo "<br> creating new table <br>";
-		executePlainSQL("CREATE TABLE demoTable (id int PRIMARY KEY, name char(30))");
+		echo "<br> Creating New Tables <br>";
+		executeFileSQL("createTables.sql");
+
 		oci_commit($db_conn);
 	}
 
@@ -244,15 +255,16 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		//Getting the values from user and insert data into the table
 		$tuple = array(
-			":bind1" => $_POST['insNo'],
-			":bind2" => $_POST['insName']
+			":bind1" => $_POST['restaurantID'],
+			":bind2" => $_POST['score'],
+			":bind3" => $_POST['comment']
 		);
 
 		$alltuples = array(
 			$tuple
 		);
 
-		executeBoundSQL("insert into demoTable values (:bind1, :bind2)", $alltuples);
+		executeBoundSQL("INSERT INTO Review VALUES (NULL, :bind1, :bind2, :bind3)", $alltuples);
 		oci_commit($db_conn);
 	}
 
