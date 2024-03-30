@@ -62,8 +62,10 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	<h2>Insert Restaurant Review</h2>
 	<form method="POST" action="main.php">
 		<input type="hidden" id="insertQueryRequest" name="insertQueryRequest">
-		Restaurant: <input type="text" name="restaurantID"> <br /><br />
-		Score: <input type="text" name="score"> <br /><br />
+		RestaurantID: <input type="text" name="restaurantID"> <br /><br />
+		Your ReviewerID: <input type="text" name="reviewerID"> <br /><br />
+		Date: <input type="date" name="date" min="2020-01-01" max="2040-12-31"> <br /><br />
+		Score (out of 5): <input type="text" name="score"> <br /><br />
 		Comment: <textarea id="comment" name="comment" rows="4" cols="50"> </textarea> <br /><br />
 		<input type="submit" value="Insert" name="insertSubmit"></p>
 	</form>
@@ -256,15 +258,17 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		//Getting the values from user and insert data into the table
 		$tuple = array(
 			":bind1" => $_POST['restaurantID'],
-			":bind2" => $_POST['score'],
-			":bind3" => $_POST['comment']
+			":bind2" => $_POST['reviewerID'],
+			":bind3" => $_POST['date'],
+			":bind4" => $_POST['score'],
+			":bind5" => $_POST['comment']
 		);
 
 		$alltuples = array(
 			$tuple
 		);
 
-		executeBoundSQL("INSERT INTO Review VALUES (NULL, :bind1, :bind2, :bind3)", $alltuples);
+		executeBoundSQL("INSERT INTO Review VALUES (NULL, :bind1, :bind2, TO_DATE(:bind3, 'YYYY-MM-DD'), :bind4, :bind5)", $alltuples);
 		oci_commit($db_conn);
 	}
 
