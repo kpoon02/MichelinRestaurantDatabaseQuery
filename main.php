@@ -99,6 +99,32 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		<input type="submit" name="displayTuples"></p>
 	</form>
 
+	<hr />
+
+	<h2>All Reviews</h2>
+	<div id='review-container' style='display: flex; flex-wrap: wrap; justify-content: space-between;'>
+	<?php
+		function updateDisplayedReviews() {
+			if (connectToDB()) {
+				$allReviews = executePlainSQL("SELECT * FROM Review");
+				
+				while ($review = OCI_Fetch_Array($allReviews, OCI_ASSOC)) {
+					// var_dump($review);
+					echo "<div class='review' style='border: 1px solid; padding: 10px; word-wrap: break-word;'>";
+					echo "<p><b>ReviewID:</b> {$review["REVIEWID"]}</p>";
+					echo "<p><b>RestaurantID:</b> {$review["RESTAURANTID"]}</p>";
+					echo "<p><b>ReviewerID:</b> {$review["REVIEWERID"]}</p>";
+					echo "<p><b>Date:</b> {$review["Date"]}</p>";
+					echo "<p><b>Score:</b> {$review["SCORE"]}</p>";
+					$comment = $review['Comment']->read(1000);
+					echo "<p><b>Comment:</b> $comment</p>";
+					echo "</div>";
+				}
+			}
+		}
+	?>
+	</div>
+
 
 	<?php
 	// The following code will be parsed as PHP
@@ -249,6 +275,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		executeFileSQL("createTables.sql");
 
 		oci_commit($db_conn);
+		updateDisplayedReviews();
 	}
 
 	function handleInsertRequest()
@@ -270,6 +297,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		executeBoundSQL("INSERT INTO Review VALUES (NULL, :bind1, :bind2, TO_DATE(:bind3, 'YYYY-MM-DD'), :bind4, :bind5)", $alltuples);
 		oci_commit($db_conn);
+		updateDisplayedReviews();
 	}
 
 	function handleCountRequest()
