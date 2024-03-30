@@ -5,7 +5,6 @@ DROP TABLE RestaurantServes;
 DROP TABLE LeadChef;
 DROP TABLE WorksAtRestaurant;
 DROP TABLE SignatureDish;
-DROP TABLE KnownFor;
 DROP TABLE Award;
 DROP TABLE Reviewer;
 DROP TABLE ProfessionalCritic;
