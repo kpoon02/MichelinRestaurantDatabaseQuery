@@ -66,20 +66,24 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		Your ReviewerID: <input type="text" name="reviewerID"> <br /><br />
 		Date: <input type="date" name="date" min="2020-01-01" max="2040-12-31"> <br /><br />
 		Score (out of 5): <input type="text" name="score"> <br /><br />
-		Comment: <textarea id="comment" name="comment" rows="4" cols="50"> </textarea> <br /><br />
+		Comment: <textarea id="comment" name="comment" rows="4" cols="50"></textarea> <br /><br />
 		<input type="submit" value="Insert" name="insertSubmit"></p>
 	</form>
 
 	<hr />
 
-	<h2>Update Name in DemoTable</h2>
-	<p>The values are case sensitive and if you enter in the wrong case, the update statement will not do anything.</p>
+	<h2>Update Review</h2>
+	<p>* = mandatory</p>
 
 	<form method="POST" action="main.php">
 		<input type="hidden" id="updateQueryRequest" name="updateQueryRequest">
-		Old Name: <input type="text" name="oldName"> <br /><br />
-		New Name: <input type="text" name="newName"> <br /><br />
-
+		Your ReviewerID*: <input type="text" name="oldReviewerID"> <br /><br />
+		Old ReviewID*: <input type="text" name="oldReviewID"> <br /><br />
+		<p><b>Edit Review Content</b> (Leave values blank if you do not want to change them)</p>
+		RestaurantID: <input type="text" name="newRestaurantID"> <br /><br />
+		Date: <input type="date" name="newDate" min="2020-01-01" max="2040-12-31"> <br /><br />
+		Score (out of 5): <input type="text" name="newScore"> <br /><br />
+		Comment: <textarea id="comment" name="newComment" rows="4" cols="50"></textarea> <br /><br />
 		<input type="submit" value="Update" name="updateSubmit"></p>
 	</form>
 
@@ -114,9 +118,9 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 					echo "<p><b>ReviewID:</b> {$review["REVIEWID"]}</p>";
 					echo "<p><b>RestaurantID:</b> {$review["RESTAURANTID"]}</p>";
 					echo "<p><b>ReviewerID:</b> {$review["REVIEWERID"]}</p>";
-					echo "<p><b>Date:</b> {$review["Date"]}</p>";
+					echo "<p><b>Date:</b> {$review["REVIEWDATE"]}</p>";
 					echo "<p><b>Score:</b> {$review["SCORE"]}</p>";
-					$comment = $review['Comment']->read(1000);
+					$comment = $review["REVIEWCOMMENT"]->read(1000);
 					echo "<p><b>Comment:</b> $comment</p>";
 					echo "</div>";
 				}
@@ -255,12 +259,29 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	{
 		global $db_conn;
 
-		$old_name = $_POST['oldName'];
-		$new_name = $_POST['newName'];
+		$tuple = array(
+			":bind1" => $_POST['oldReviewerID'],
+			":bind2" => $_POST['oldReviewID'],
+			":bind3" => $_POST['newRestaurantID'],
+			":bind4" => $_POST['newDate'],
+			":bind5" => $_POST['newScore'],
+			":bind6" => $_POST['newComment']
+		);
 
-		// you need the wrap the old name and new name values with single quotations
-		executePlainSQL("UPDATE demoTable SET name='" . $new_name . "' WHERE name='" . $old_name . "'");
+		$alltuples = array(
+			$tuple
+		);
+
+		// if bind is NULL, then don't update that attribute
+		executeBoundSQL("UPDATE Review SET 
+		RestaurantID= COALESCE(cast(:bind3 AS INT), RestaurantID),		
+		ReviewDate= COALESCE(TO_DATE(:bind4, 'YYYY-MM-DD'), ReviewDate),
+		Score= COALESCE(cast(:bind5 AS INT), Score),
+		ReviewComment= COALESCE(TO_CLOB(:bind6), ReviewComment) 
+		WHERE ReviewerID=:bind1 AND ReviewID=:bind2", $alltuples);
+
 		oci_commit($db_conn);
+		updateDisplayedReviews();
 	}
 
 	function handleResetRequest()
