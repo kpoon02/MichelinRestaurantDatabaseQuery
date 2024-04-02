@@ -1,0 +1,14 @@
+.header {
+    padding: 60px;
+    text-align: center;
+    background-image: url("RestaurantImageHeader.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: white;
+    font-size: 30px;
+    text-shadow: -2px -2px black;
+  }
+
+  body {
+    background-color: #D4E6F1;
+  }
