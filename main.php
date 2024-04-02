@@ -41,11 +41,20 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 // pair of tags wherever the content switches to PHP
 ?>
 
+<style>
+<?php include 'main.css'; ?>
+</style>
+
 <html>
 
 <head>
-	<title>CPSC 304 PHP/Oracle Demonstration</title>
+	<title>Group 24 - CPSC 304 Michelin Restaurant Project</title>
 </head>
+
+<div class="header">
+	<h1 class="title">Michelin Restaurant Reviews in Vancouver</h1>
+	<p>By: Katherine, Maya, Inaki</p>
+</div>
 
 <body>
 	<h2>Reset</h2>
