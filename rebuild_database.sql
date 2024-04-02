@@ -259,7 +259,3 @@ VALUES(5, 'Selected', NULL, 'Good cooking', 5);
 
 INSERT INTO Award
 VALUES(6, 'Selected', NULL, 'Good cooking', 6);
-
-insert into Reviewer values (4, 'Karen');
-
-insert into review values (null, 1, 4, TO_DATE('2024-07-09', 'YYYY-MM-DD'), 2, 'hi');
