@@ -28,8 +28,8 @@ error_reporting(E_ALL);
 // Set some parameters
 
 // Database access configuration
-$config["dbuser"] = "ora_kpoon02";			// change "cwl" to your own CWL
-$config["dbpassword"] = "a90607425";	// change to 'a' + your student number
+$config["dbuser"] = "ora_ikblasco";			// change "cwl" to your own CWL
+$config["dbpassword"] = "a93863819";	// change to 'a' + your student number
 $config["dbserver"] = "dbhost.students.cs.ubc.ca:1522/stu";
 $db_conn = NULL;	// login credentials are used in connectToDB()
 
@@ -78,32 +78,46 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		Comment: <textarea id="comment" name="comment" rows="4" cols="50"></textarea> <br /><br />
 		<input type="submit" value="Insert" name="insertSubmit"></p>
 	</form>
-
 	<hr />
+
+
 	<!-- Insertion, insert a new reviewer into the table -->
-	 <h2>Insert New Reviewer</h2>
-  	 <form method="POST" action="main.php">
-	 <input type="hidden" id="insertReviewerRequest" name="insertReviewerRequest">
-	 ReviewerID: <input type="text" name="reviewerID"> <br /><br />
-	 Name: <input type="text" name="name"> <br /><br />
-	 Type:
-	 <select id="reviewerType" name="reviewerType" onchange="toggleFields()">
-  		 <option value="">Select Type</option>
-       		 <option value="ProfessionalCritic">Professional Critic</option>
-       		 <option value="FoodBlogger">Food Blogger</option>
-   	</select><br><br>
-       		 Title: <input type="text" name="title" id="titleField" style="display:none;"><br><br>
-       		 Website: <input type="text" name="website" id="websiteField" style="display:none;"><br><br>
-       		 <input type="submit" value="Insert" name="insertReviewer">
-   	 </form>
-   	 <script>
-   	 function toggleFields() {
-       		 var type = document.getElementById("reviewerType").value;
-       		 document.getElementById("titleField").style.display = (type == "ProfessionalCritic") ? "block" : "none";
-       		 document.getElementById("websiteField").style.display = (type == "FoodBlogger") ? "block" : "none";
-    	}
-   	 </script>
-   	 <hr />
+	<h2>Insert New Reviewer</h2>
+	<form method="POST" action="main.php">
+		<label for="reviewerID">ReviewerID:</label>
+    		<input type="text" id="reviewerID" name="reviewerID"> <br /><br />
+    
+    		<label for="name">Name:</label>
+    		<input type="text" id="name" name="name"> <br /><br />
+    
+    		<label for="reviewerType">Type:</label>
+    		<select id="reviewerType" name="reviewerType" onchange="toggleFields()">
+        		<option value="">Select Type</option>
+        		<option value="ProfessionalCritic">Professional Critic</option>
+        		<option value="FoodBlogger">Food Blogger</option>
+    		</select><br><br>
+    
+    		<div id="titleField" style="display:none;">
+        		<label for="title">Title:</label>
+        		<input type="text" id="title" name="title"><br><br>
+    		</div>
+    
+    		<div id="websiteField" style="display:none;">
+        		<label for="website">Website:</label>
+        		<input type="text" id="website" name="website"><br><br>
+    		</div>
+    
+    		<input type="submit" value="Insert" name="insertReviewer">
+	</form>
+	<script>
+	function toggleFields() {
+    		var type = document.getElementById("reviewerType").value;
+    		document.getElementById("titleField").style.display = (type == "ProfessionalCritic") ? "block" : "none";
+    		document.getElementById("websiteField").style.display = (type == "FoodBlogger") ? "block" : "none";
+	}
+	</script>
+	<hr />
+	
 
    	 <!-- Projection and selection, select all reviews fiven a RiviewerID -->
    	 <h2>Search Reviews by Reviewer</h2>
@@ -373,36 +387,49 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	}
 
 	// backend implementation of inserting a new reviewer
-   	 function handleInsertReviewerRequest() {
-       		 global $db_conn;
+   	function handleInsertReviewerRequest() {
+   		 global $db_conn;
 
-       		 $reviewerID = $_POST['reviewerID'];
-       		 $name = $_POST['name'];
-       		 $reviewerType = $_POST['reviewerType']; // Determines which table to insert additional details into
-    
-       		 // Common reviewer attributes
-       		 $reviewerQuery = oci_parse($db_conn, "INSERT INTO Reviewer (ReviewerID, Name) VALUES (:reviewerID, :name)");
-       		 oci_bind_by_name($reviewerQuery, ":reviewerID", $reviewerID);
-       		 oci_bind_by_name($reviewerQuery, ":name", $name);
-       		 oci_execute($reviewerQuery);
-    
-       		 if ($reviewerType == "ProfessionalCritic") {
-           		 $title = $_POST['title']; //ProfessionalCritics
-           		 $criticQuery = oci_parse($db_conn, "INSERT INTO ProfessionalCritic (ReviewerID, Title) VALUES (:reviewerID, :title)");
-           		 oci_bind_by_name($criticQuery, ":reviewerID", $reviewerID);
-           		 oci_bind_by_name($criticQuery, ":title", $title);
-           		 oci_execute($criticQuery);
-       		 } elseif ($reviewerType == "FoodBlogger") {
-           		 $website = $_POST['website']; //FoodBloggers
-           		 $bloggerQuery = oci_parse($db_conn, "INSERT INTO FoodBlogger (ReviewerID, Website) VALUES (:reviewerID, :website)");
-           		 oci_bind_by_name($bloggerQuery, ":reviewerID", $reviewerID);
-           		 oci_bind_by_name($bloggerQuery, ":website", $website);
-           		 oci_execute($bloggerQuery);
-       		 }
-    
-       		 oci_commit($db_conn);
-        	echo "Reviewer added successfully";
-   	 }
+   		 $reviewerID = $_POST['reviewerID'];
+   		 $name = $_POST['name'];
+   		 $reviewerType = $_POST['reviewerType'];
+
+   		 $reviewerQuery = oci_parse($db_conn, "INSERT INTO Reviewer (ReviewerID, Name) VALUES (:reviewerID, :name)");
+   		 oci_bind_by_name($reviewerQuery, ":reviewerID", $reviewerID);
+   		 oci_bind_by_name($reviewerQuery, ":name", $name);
+
+   		 if (!oci_execute($reviewerQuery)) {
+       			 $e = oci_error($reviewerQuery);
+       			 echo "Reviewer insert error: " . $e['message'];
+       			 return; // Stop the function if there's an error
+   		 }
+
+   		 if ($reviewerType == "ProfessionalCritic") {
+       			 $title = $_POST['title'];
+       			 $criticQuery = oci_parse($db_conn, "INSERT INTO ProfessionalCritic (ReviewerID, Title) VALUES (:reviewerID, :title)");
+       			 oci_bind_by_name($criticQuery, ":reviewerID", $reviewerID);
+       			 oci_bind_by_name($criticQuery, ":title", $title);
+       			 if (!oci_execute($criticQuery)) {
+           			 $e = oci_error($criticQuery);
+           			 echo "Critic insert error: " . $e['message'];
+           			 return;
+       			 }
+   		 } elseif ($reviewerType == "FoodBlogger") {
+       			 $website = $_POST['website'];
+       			 $bloggerQuery = oci_parse($db_conn, "INSERT INTO FoodBlogger (ReviewerID, Website) VALUES (:reviewerID, :website)");
+       			 oci_bind_by_name($bloggerQuery, ":reviewerID", $reviewerID);
+       			 oci_bind_by_name($bloggerQuery, ":website", $website);
+       			 if (!oci_execute($bloggerQuery)) {
+           			 $e = oci_error($bloggerQuery);
+           			 echo "Blogger insert error: " . $e['message'];
+           			 return;
+       			 }
+    		}
+
+   		 oci_commit($db_conn);
+   		 echo "Reviewer added successfully";
+		}
+
 
 	function handleCountRequest()
 	{
