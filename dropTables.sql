@@ -1,4 +1,3 @@
-DROP TABLE RestaurantServes;
 DROP TABLE WorksAtRestaurant;
 DROP TABLE SignatureDish;
 DROP TABLE Award;
