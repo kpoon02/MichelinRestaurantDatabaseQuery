@@ -174,9 +174,9 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 					echo "<p><b>ReviewID:</b> {$review["REVIEWID"]}</p>";
 					echo "<p><b>RestaurantID:</b> {$review["RESTAURANTID"]}</p>";
 					echo "<p><b>ReviewerID:</b> {$review["REVIEWERID"]}</p>";
-					echo "<p><b>Date:</b> {$review["REVIEWDATE"]}</p>";
+					echo "<p><b>Date:</b> {$review["Date"]}</p>";
 					echo "<p><b>Score:</b> {$review["SCORE"]}</p>";
-					$comment = $review["REVIEWCOMMENT"]->read(1000);
+					$comment = $review["Comment"]->read(1000);
 					echo "<p><b>Comment:</b> $comment</p>";
 					echo "</div>";
 				}
@@ -331,9 +331,9 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		// if bind is NULL, then don't update that attribute
 		executeBoundSQL("UPDATE Review SET 
 		RestaurantID= COALESCE(cast(:bind3 AS INT), RestaurantID),		
-		ReviewDate= COALESCE(TO_DATE(:bind4, 'YYYY-MM-DD'), ReviewDate),
+		\"Date\"= COALESCE(TO_DATE(:bind4, 'YYYY-MM-DD'), \"Date\"),
 		Score= COALESCE(cast(:bind5 AS INT), Score),
-		ReviewComment= COALESCE(TO_CLOB(:bind6), ReviewComment) 
+		\"Comment\"= COALESCE(TO_CLOB(:bind6), \"Comment\") 
 		WHERE ReviewerID=:bind1 AND ReviewID=:bind2", $alltuples);
 
 		oci_commit($db_conn);
@@ -343,13 +343,8 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	function handleResetRequest()
 	{
 		global $db_conn;
-		// Drop old table
-		echo "<br> Dropping Old Tables <br>";
-		executeFileSQL("dropTables.sql");
-
-		// Create new table
-		echo "<br> Creating New Tables <br>";
-		executeFileSQL("createTables.sql");
+		echo "<br> Resetting Database <br>";
+		executeFileSQL("rebuild_database.sql");
 
 		oci_commit($db_conn);
 		updateDisplayedReviews();
