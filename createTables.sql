@@ -48,14 +48,6 @@ CREATE TABLE WorksAtRestaurant (
     FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID)
 );
 
-CREATE TABLE RestaurantServes (
-    RestaurantID INT NOT NULL,
-    CuisineID INT NOT NULL,
-    PRIMARY KEY (RestaurantID, CuisineID),
-    FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID),
-    FOREIGN KEY (CuisineID) REFERENCES Cuisine(CuisineID)
-);
-
 CREATE TABLE SignatureDish (
     RestaurantID INT NOT NULL,
     DishName VARCHAR(1000) NOT NULL,
