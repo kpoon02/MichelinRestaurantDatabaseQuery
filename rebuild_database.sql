@@ -1,3 +1,15 @@
+DROP TABLE WorksAtRestaurant;
+DROP TABLE SignatureDish;
+DROP TABLE Award;
+DROP TABLE ProfessionalCritic;
+DROP TABLE FoodBlogger;
+DROP TABLE Review;
+DROP TABLE Reviewer;
+DROP TABLE LeadChef;
+DROP TABLE Restaurant;
+DROP TABLE Location;
+DROP TABLE Cuisine;
+
 CREATE TABLE Cuisine (
     CuisineID INT,
     Name VARCHAR(1000) NOT NULL,
@@ -247,3 +259,7 @@ VALUES(5, 'Selected', NULL, 'Good cooking', 5);
 
 INSERT INTO Award
 VALUES(6, 'Selected', NULL, 'Good cooking', 6);
+
+insert into Reviewer values (4, 'Karen');
+
+insert into review values (null, 1, 4, TO_DATE('2024-07-09', 'YYYY-MM-DD'), 2, 'hi');
