@@ -86,6 +86,14 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	</form>
 
 	<hr />
+	
+	<h2>Highest Restaurant Rating Grouped By Cuisine</h2>
+	<form method="GET" action="restaurant.php">
+		<input type="hidden" id="groupByRequest" name="groupByRequest">
+		<input type="submit" name="groupBy"></p>
+	</form>
+
+	<hr />
 
 	<h2>Display All Restaurants</h2>
 	<form method="GET" action="restaurant.php">
@@ -218,9 +226,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
             }
             
             echo "</td><tr>";
-            
-            // . $row["PRICERANGE"] . "</td><td>" . $row["ADDRESS"] . 
-            // "</td><td>" . $row["POSTALCODE"] . "</td><td>" . $row["AVERAGESCORE"] . "</td><td>" . $row["CUISINEID"] . "</td></tr>"; //or just use "echo $row[0]"
 		}
 
 		echo "</table>";
@@ -275,6 +280,23 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		}
 	}
 
+	function handleGroupByRequest()
+	{
+		global $db_conn;
+
+		$result = executePlainSQL("SELECT CuisineID, MAX(AverageScore) FROM Restaurant GROUP BY CuisineID");
+
+		echo "<br>Retrieved data from table demoTable:<br>";
+		echo "<table>";
+		echo "<tr><th>CuisineID</th><th>Max Rating	</th></tr>";
+
+		while ($row = OCI_Fetch_Array($result, OCI_ASSOC)) {
+			echo "<tr><td>" . $row["CUISINEID"] . "</td><td>" . $row["MAX(AVERAGESCORE)"] . "</td></tr>"; //or just use "echo $row[0]"
+		}
+
+		echo "</table>";
+	}
+
 	function handleDisplayRequest()
 	{
 		global $db_conn;
@@ -302,6 +324,8 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		if (connectToDB()) {
 			if (array_key_exists('countTuples', $_GET)) {
 				handleCountRequest();
+			} elseif (array_key_exists('groupBy', $_GET)) {
+				handleGroupByRequest();
 			} elseif (array_key_exists('displayTuples', $_GET)) {
 				handleDisplayRequest();
 			}
@@ -312,7 +336,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	if (isset($_POST['reset'])) {
 		handlePOSTRequest();
-	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest'])) {
+	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['groupByRequest'])) {
 		handleGETRequest();
 	}
 	// End PHP parsing and send the rest of the HTML content
