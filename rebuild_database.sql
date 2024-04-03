@@ -100,7 +100,7 @@ CREATE TABLE Review (
     RestaurantID INT NOT NULL,
     ReviewerID INT NOT NULL,
     "Date" DATE NOT NULL,
-    Score INT,
+    Score INT NOT NULL,
     "Comment" CLOB,
     PRIMARY KEY (ReviewID),
     FOREIGN KEY (ReviewerID) REFERENCES Reviewer(ReviewerID),
