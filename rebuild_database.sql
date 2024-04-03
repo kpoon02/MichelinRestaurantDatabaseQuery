@@ -130,15 +130,6 @@ VALUES(3,
 'Japanese', 
 'Sushi');
 
-INSERT INTO Cuisine
-VALUES(4, 'Contemporary', 'French');
-
-INSERT INTO Cuisine
-VALUES(5, 'Japanese', 'Sushi');
-
-INSERT INTO Cuisine
-VALUES(6, 'Japanese', 'Sushi');
-
 INSERT INTO Location
 VALUES('3330 Main St.', 
 'V5V 3M7', 
@@ -184,16 +175,16 @@ INSERT INTO Restaurant
 VALUES(1, 'Sushi Hil', 'https://www.sushihil.com/', '$$', '3330 Main St.', 'V5V 3M7', NULL, 3);
 
 INSERT INTO Restaurant
-VALUES(2, 'Okeya Kyujiro', 'https://okeya.ca/', '$$$$', '1038 Mainland St.', 'V6B 2T4', NULL, 5);
+VALUES(2, 'Okeya Kyujiro', 'https://okeya.ca/', '$$$$', '1038 Mainland St.', 'V6B 2T4', NULL, 3);
 
 INSERT INTO Restaurant
-VALUES(3, 'Sushi Jin', 'https://sushijinvancouver.ca/', '$$$$', '750 Nelson St.', 'V6Z 1A8', NULL, 6);
+VALUES(3, 'Sushi Jin', 'https://sushijinvancouver.ca/', '$$$$', '750 Nelson St.', 'V6Z 1A8', NULL, 3);
 
 INSERT INTO Restaurant
 VALUES(4, 'Homer St. Cafe', 'https://www.homerstreetcafebar.com/', '$$$', '898 Homer St.', 'V6B 2W5', NULL, 2);
 
 INSERT INTO Restaurant
-VALUES(5, 'Bacchus', 'https://wedgewoodhotel.com/dining/bacchus-restaurant/', '$$$', '845 Hornby St.', 'V6Z 1V1', NULL, 4);
+VALUES(5, 'Bacchus', 'https://wedgewoodhotel.com/dining/bacchus-restaurant/', '$$$', '845 Hornby St.', 'V6Z 1V1', NULL, 2);
 
 INSERT INTO Restaurant
 VALUES(6, 'Dynasty Seafood', 'https://dynasty-restaurant.ca/', '$$$', '108-777 W. Broadway', 'V5Z 4J7', NULL, 1);
@@ -226,17 +217,17 @@ added zing with grated ginger-scallion.', 'Main Course', 3);
 INSERT INTO SignatureDish
 VALUES('Omakase Course', 2, 'Highlights include chawanmushi with cherry blossom, shatteringly crispy 
 tempura sandbar fish, spicy firefly squid on a bamboo skewer, and a presentation of two uni 
-petals from different Japanese waters served with seaweed jam.', NULL, 5);
+petals from different Japanese waters served with seaweed jam.', NULL, 3);
 
 INSERT INTO SignatureDish
 VALUES('Omakase', 3, 'Begin with otsumami such as live lobster sashimi, followed by delicious courses 
-such as ankimo in a ponzu bath, and miso soup in lobster broth.', NULL, 6);
+such as ankimo in a ponzu bath, and miso soup in lobster broth.', NULL, 3);
 
 INSERT INTO SignatureDish
 VALUES('Rotisserie Chicken', 4, 'Brined in Homer St. Cafes signature sauce overnight to render tender, flavourful meat.', NULL, 2);
 
 INSERT INTO SignatureDish
-VALUES('Tomato Soup', 5, 'Humble tomato soup is elevated.', NULL, 4);
+VALUES('Tomato Soup', 5, 'Humble tomato soup is elevated.', NULL, 2);
 
 INSERT INTO SignatureDish
 VALUES('Dim Sum', 6, 'A wide selection from shrimp dumplings to congee and soups.', NULL, 1);
