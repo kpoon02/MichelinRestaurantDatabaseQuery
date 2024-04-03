@@ -53,8 +53,19 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 <div class="header">
 	<h1 class="title">Michelin Restaurant Reviews in Vancouver</h1>
-	<p>By: Katherine, Maya, Inaki</p>
 </div>
+
+<br /><br />
+<div class="header-bar">
+	<?php
+		$link = "restaurant.php";
+		$text = "View Restaurants";
+
+		echo "<a href='$link'>$text</a>";
+	?>
+</div>
+<br /><br />
+
 
 <body>
 	<h2>Reset</h2>
@@ -69,12 +80,13 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	<hr />
 
 	<h2>Insert Restaurant Review</h2>
+	<p>* = mandatory</p>
 	<form method="POST" action="main.php">
 		<input type="hidden" id="insertQueryRequest" name="insertQueryRequest">
-		RestaurantID: <input type="text" name="restaurantID"> <br /><br />
-		Your ReviewerID: <input type="text" name="reviewerID"> <br /><br />
-		Date: <input type="date" name="date" min="2020-01-01" max="2040-12-31"> <br /><br />
-		Score (out of 5): <input type="text" name="score"> <br /><br />
+		RestaurantID*: <input type="number" min=0 name="restaurantID" required> <br /><br />
+		Your ReviewerID*: <input type="number" min=0 name="reviewerID" required> <br /><br />
+		Date*: <input type="date" name="date" min="2020-01-01" max="2040-12-31" required> <br /><br />
+		Score (out of 5)*: <input type="number" min=0 max=5 name="score" required> <br /><br />
 		Comment: <textarea id="comment" name="comment" rows="4" cols="50"></textarea> <br /><br />
 		<input type="submit" value="Insert" name="insertSubmit"></p>
 	</form>
@@ -133,12 +145,12 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	<form method="POST" action="main.php">
 		<input type="hidden" id="updateQueryRequest" name="updateQueryRequest">
-		Your ReviewerID*: <input type="text" name="oldReviewerID"> <br /><br />
-		Old ReviewID*: <input type="text" name="oldReviewID"> <br /><br />
+		Your ReviewerID*: <input type="number" min=0 name="oldReviewerID" required> <br /><br />
+		Old ReviewID*: <input type="number" min=0 name="oldReviewID" required> <br /><br />
 		<p><b>Edit Review Content</b> (Leave values blank if you do not want to change them)</p>
-		RestaurantID: <input type="text" name="newRestaurantID"> <br /><br />
+		RestaurantID: <input type="number" min=0 name="newRestaurantID"> <br /><br />
 		Date: <input type="date" name="newDate" min="2020-01-01" max="2040-12-31"> <br /><br />
-		Score (out of 5): <input type="text" name="newScore"> <br /><br />
+		Score (out of 5): <input type="number" min=0 max=5 name="newScore"> <br /><br />
 		Comment: <textarea id="comment" name="newComment" rows="4" cols="50"></textarea> <br /><br />
 		<input type="submit" value="Update" name="updateSubmit"></p>
 	</form>
@@ -153,38 +165,13 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	<hr />
 
-	<h2>Display Tuples in DemoTable</h2>
+	<h2>Display All Reviews</h2>
 	<form method="GET" action="main.php">
 		<input type="hidden" id="displayTuplesRequest" name="displayTuplesRequest">
 		<input type="submit" name="displayTuples"></p>
 	</form>
 
 	<hr />
-
-	<h2>All Reviews</h2>
-	<div id='review-container' style='display: flex; flex-wrap: wrap; justify-content: space-between;'>
-	<?php
-		function updateDisplayedReviews() {
-			if (connectToDB()) {
-				$allReviews = executePlainSQL("SELECT * FROM Review");
-				
-				while ($review = OCI_Fetch_Array($allReviews, OCI_ASSOC)) {
-					// var_dump($review);
-					echo "<div class='review' style='border: 1px solid; padding: 10px; word-wrap: break-word;'>";
-					echo "<p><b>ReviewID:</b> {$review["REVIEWID"]}</p>";
-					echo "<p><b>RestaurantID:</b> {$review["RESTAURANTID"]}</p>";
-					echo "<p><b>ReviewerID:</b> {$review["REVIEWERID"]}</p>";
-					echo "<p><b>Date:</b> {$review["Date"]}</p>";
-					echo "<p><b>Score:</b> {$review["SCORE"]}</p>";
-					$comment = $review["Comment"]->read(1000);
-					echo "<p><b>Comment:</b> $comment</p>";
-					echo "</div>";
-				}
-			}
-		}
-	?>
-	</div>
-
 
 	<?php
 	// The following code will be parsed as PHP
@@ -271,15 +258,24 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	function printResult($result)
 	{ //prints results from a select statement
-		echo "<br>Retrieved data from table demoTable:<br>";
-		echo "<table>";
-		echo "<tr><th>ID</th><th>Name</th></tr>";
-
-		while ($row = OCI_Fetch_Array($result, OCI_ASSOC)) {
-			echo "<tr><td>" . $row["ID"] . "</td><td>" . $row["NAME"] . "</td></tr>"; //or just use "echo $row[0]"
+		echo "<br>Retrieved data from table Review:<br>";
+		
+		while ($review = OCI_Fetch_Array($result, OCI_ASSOC)) {
+			// var_dump($review);
+			echo "<div class='review' style='border: 1px solid; padding: 10px; word-wrap: break-word;'>";
+			echo "<p><b>ReviewID:</b> {$review["REVIEWID"]}</p>";
+			echo "<p><b>RestaurantID:</b> {$review["RESTAURANTID"]}</p>";
+			echo "<p><b>ReviewerID:</b> {$review["REVIEWERID"]}</p>";
+			echo "<p><b>Date:</b> {$review["Date"]}</p>";
+			echo "<p><b>Score:</b> {$review["SCORE"]}</p>";
+			if (array_key_exists("Comment", $review)) {
+				$comment = $review["Comment"]->read(1000);
+			} else {
+				$comment = NULL;
+			}
+			echo "<p><b>Comment:</b> $comment</p>";
+			echo "</div>";
 		}
-
-		echo "</table>";
 	}
 
 	function connectToDB()
@@ -337,7 +333,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		WHERE ReviewerID=:bind1 AND ReviewID=:bind2", $alltuples);
 
 		oci_commit($db_conn);
-		updateDisplayedReviews();
 	}
 
 	function handleResetRequest()
@@ -347,10 +342,9 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		executeFileSQL("rebuild_database.sql");
 
 		oci_commit($db_conn);
-		updateDisplayedReviews();
 	}
 
-	function handleInsertRequest()
+	function handleInsertReviewRequest()
 	{
 		global $db_conn;
 
@@ -369,7 +363,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		executeBoundSQL("INSERT INTO Review VALUES (NULL, :bind1, :bind2, TO_DATE(:bind3, 'YYYY-MM-DD'), :bind4, :bind5)", $alltuples);
 		oci_commit($db_conn);
-		updateDisplayedReviews();
 	}
 
 	// backend implementation of inserting a new reviewer
@@ -418,7 +411,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	function handleDisplayRequest()
 	{
 		global $db_conn;
-		$result = executePlainSQL("SELECT * FROM demoTable");
+		$result = executePlainSQL("SELECT * FROM Review");
 		printResult($result);
 	}
 
@@ -432,7 +425,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 			} else if (array_key_exists('updateQueryRequest', $_POST)) {
 				handleUpdateRequest();
 			} else if (array_key_exists('insertQueryRequest', $_POST)) {
-				handleInsertRequest();
+				handleInsertReviewRequest();
 			} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //call search reviews function
                			 handleSelectReviewsByReviewer();
            		 } else if (array_key_exists('deleteReview', $_POST)) { //call delete review function
