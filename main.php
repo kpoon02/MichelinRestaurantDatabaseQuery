@@ -454,14 +454,14 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 			} else if (array_key_exists('insertQueryRequest', $_POST)) {
 				handleInsertReviewRequest();
 			} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //call search reviews function
-               			 handleSelectReviewsByReviewer();
-           		 } else if (array_key_exists('deleteReview', $_POST)) { //call delete review function
-               			 handleDeleteReview();
-           		 } else if (isset($_POST['insertReviewerRequest'])) { //call insert new reviewer function
-               			 handleInsertReviewerRequest();
-           		 } else if (isset($_POST['searchReviewsByReviewer'])) { //call search function, I think table also will be displayed
-               			 handleSelectReviewsByReviewer();
-           		 }
+               	handleSelectReviewsByReviewer();
+           	} else if (array_key_exists('deleteReview', $_POST)) { //call delete review function
+               	handleDeleteReview();
+        	} else if (array_key_exists('insertReviewer', $_POST)) { //call insert new reviewer function
+               	handleInsertReviewerRequest();
+           	} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //call search function, I think table also will be displayed
+               	handleSelectReviewsByReviewer();
+           	}
 
 			disconnectFromDB();
 		}
@@ -482,7 +482,8 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		}
 	}
 
-	if (isset($_POST['reset']) || isset($_POST['updateSubmit']) || isset($_POST['insertSubmit'])) {
+	if (isset($_POST['reset']) || isset($_POST['updateSubmit']) || isset($_POST['insertSubmit']) || isset($_POST['insertReviewer'])
+	|| isset($_POST['searchReviewsByReviewer']) || isset($_POST['deleteReview'])) {
 		handlePOSTRequest();
 	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest'])) {
 		handleGETRequest();

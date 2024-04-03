@@ -45,7 +45,7 @@ CREATE TABLE Restaurant (
     PriceRange VARCHAR(1000),
     Address VARCHAR(1000),
     PostalCode VARCHAR(1000),
-    AverageScore DECIMAL,
+    AverageScore DECIMAL(2,1),
     CuisineID INT,
     PRIMARY KEY (RestaurantID),
     FOREIGN KEY (Address, PostalCode) REFERENCES Location(Address, PostalCode) ON DELETE SET NULL,
@@ -172,22 +172,22 @@ VALUES(6, 'Sam Leung', 'Executive Chef Sam Leung began his apprenticeship in Gua
 
 
 INSERT INTO Restaurant
-VALUES(1, 'Sushi Hil', 'https://www.sushihil.com/', '$$', '3330 Main St.', 'V5V 3M7', NULL, 3);
+VALUES(1, 'Sushi Hil', 'https://www.sushihil.com/', '$$', '3330 Main St.', 'V5V 3M7', 4.7, 3);
 
 INSERT INTO Restaurant
-VALUES(2, 'Okeya Kyujiro', 'https://okeya.ca/', '$$$$', '1038 Mainland St.', 'V6B 2T4', NULL, 3);
+VALUES(2, 'Okeya Kyujiro', 'https://okeya.ca/', '$$$$', '1038 Mainland St.', 'V6B 2T4', 4.8, 3);
 
 INSERT INTO Restaurant
-VALUES(3, 'Sushi Jin', 'https://sushijinvancouver.ca/', '$$$$', '750 Nelson St.', 'V6Z 1A8', NULL, 3);
+VALUES(3, 'Sushi Jin', 'https://sushijinvancouver.ca/', '$$$$', '750 Nelson St.', 'V6Z 1A8', 4.6, 3);
 
 INSERT INTO Restaurant
-VALUES(4, 'Homer St. Cafe', 'https://www.homerstreetcafebar.com/', '$$$', '898 Homer St.', 'V6B 2W5', NULL, 2);
+VALUES(4, 'Homer St. Cafe', 'https://www.homerstreetcafebar.com/', '$$$', '898 Homer St.', 'V6B 2W5', 4.4, 2);
 
 INSERT INTO Restaurant
-VALUES(5, 'Bacchus', 'https://wedgewoodhotel.com/dining/bacchus-restaurant/', '$$$', '845 Hornby St.', 'V6Z 1V1', NULL, 2);
+VALUES(5, 'Bacchus', 'https://wedgewoodhotel.com/dining/bacchus-restaurant/', '$$$', '845 Hornby St.', 'V6Z 1V1', 4.5, 2);
 
 INSERT INTO Restaurant
-VALUES(6, 'Dynasty Seafood', 'https://dynasty-restaurant.ca/', '$$$', '108-777 W. Broadway', 'V5Z 4J7', NULL, 1);
+VALUES(6, 'Dynasty Seafood', 'https://dynasty-restaurant.ca/', '$$$', '108-777 W. Broadway', 'V5Z 4J7', 4.2, 1);
 
 
 INSERT INTO WorksAtRestaurant
