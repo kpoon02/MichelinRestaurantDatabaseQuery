@@ -28,8 +28,8 @@ error_reporting(E_ALL);
 // Set some parameters
 
 // Database access configuration
-$config["dbuser"] = "ora_kpoon02";			// change "cwl" to your own CWL
-$config["dbpassword"] = "a90607425";	// change to 'a' + your student number
+$config["dbuser"] = "ora_ikblasco";			// change "cwl" to your own CWL
+$config["dbpassword"] = "a93863819";	// change to 'a' + your student number
 $config["dbserver"] = "dbhost.students.cs.ubc.ca:1522/stu";
 $db_conn = NULL;	// login credentials are used in connectToDB()
 
@@ -139,17 +139,16 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
    	 </form>
    	 <hr />
 
-   	 <!-- Deletion, Delete a review given the restaurantID, reviewerID, and Date -->
-   	 <h2>Delete a Review</h2>
+   	 <!-- Deletion, Delete a reviewer and respective reviews given reviewerID-->
+   	 <h2>Delete a Reviewer Account</h2>
+	 <h3>All reviews by this account will also be deleted</h3>
    	 <form method="POST" action="main.php" onsubmit="return confirmDelete();">
-   	 Restaurant ID: <input type="text" name="deleteRestaurantID" required><br><br>
-   	 Reviewer ID: <input type="text" name="deleteReviewerID" required><br><br>
-   	 Date (YYYY-MM-DD): <input type="text" name="deleteDate" required><br><br>
-   	 <input type="submit" name="deleteReview" value="Delete">
+   	 Reviewer ID: <input type="number" name="deleteReviewerID" required><br><br>
+   	 <input type="submit" name="deleteReviewer" value="Delete">
    	 </form>
    	 <script>
    	 function confirmDelete() {
-        	return confirm('Are you sure you want to delete this review?');
+        	return confirm('Are you sure you want to delete this account?');
    	 }
    	 </script>
    	 <hr />
@@ -378,6 +377,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		executeBoundSQL("INSERT INTO Review VALUES (NULL, :bind1, :bind2, TO_DATE(:bind3, 'YYYY-MM-DD'), :bind4, :bind5)", $alltuples);
 		oci_commit($db_conn);
 	}
+	
 
 	// backend implementation of inserting a new reviewer
    	function handleInsertReviewerRequest() {
@@ -397,7 +397,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
        			 return; // Stop the function if there's an error
    		 }
 
-   		 if ($reviewerType == "ProfessionalCritic") {
+   		 if ($reviewerType == "ProfessionalCritic") { // if reviewer is a professional critic
        			 $title = $_POST['title'];
        			 $criticQuery = oci_parse($db_conn, "INSERT INTO ProfessionalCritic (ReviewerID, Title) VALUES (:reviewerID, :title)");
        			 oci_bind_by_name($criticQuery, ":reviewerID", $reviewerID);
@@ -407,7 +407,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
            			 echo "Critic insert error: " . $e['message'];
            			 return;
        			 }
-   		 } elseif ($reviewerType == "FoodBlogger") {
+   		 } elseif ($reviewerType == "FoodBlogger") { //if reviewer is a food blogger
        			 $website = $_POST['website'];
        			 $bloggerQuery = oci_parse($db_conn, "INSERT INTO FoodBlogger (ReviewerID, Website) VALUES (:reviewerID, :website)");
        			 oci_bind_by_name($bloggerQuery, ":reviewerID", $reviewerID);
@@ -444,8 +444,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	// HANDLE ALL POST ROUTES
 	// A better coding practice is to have one method that reroutes your requests accordingly. It will make it easier to add/remove functionality.
-	function handlePOSTRequest()
-	{
+	function handlePOSTRequest() {
 		if (connectToDB()) {
 			if (array_key_exists('resetTablesRequest', $_POST)) {
 				handleResetRequest();
@@ -453,16 +452,14 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 				handleUpdateRequest();
 			} else if (array_key_exists('insertQueryRequest', $_POST)) {
 				handleInsertReviewRequest();
-			} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //call search reviews function
-               	handleSelectReviewsByReviewer();
-           	} else if (array_key_exists('deleteReview', $_POST)) { //call delete review function
-               	handleDeleteReview();
-        	} else if (array_key_exists('insertReviewer', $_POST)) { //call insert new reviewer function
-               	handleInsertReviewerRequest();
-           	} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //call search function, I think table also will be displayed
-               	handleSelectReviewsByReviewer();
-           	}
-
+			} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //included selection+projection query
+				handleSelectReviewsByReviewer();
+			} else if (array_key_exists('deleteReviewer', $_POST)) { //included delete query
+				handleDeleteReviewerRequest();
+			} else if (array_key_exists('insertReviewer', $_POST)) { //included insert query
+				handleInsertReviewerRequest();
+			} // Removed the duplicated searchReviewsByReviewer
+	
 			disconnectFromDB();
 		}
 	}
@@ -483,60 +480,63 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	}
 
 	if (isset($_POST['reset']) || isset($_POST['updateSubmit']) || isset($_POST['insertSubmit']) || isset($_POST['insertReviewer'])
-	|| isset($_POST['searchReviewsByReviewer']) || isset($_POST['deleteReview'])) {
+	|| isset($_POST['searchReviewsByReviewer']) || isset($_POST['deleteReviewer'])) {
 		handlePOSTRequest();
 	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest'])) {
 		handleGETRequest();
 	}
 
-	// backend implementation of selection and projection and display
-   	 function handleSelectReviewsByReviewer() {
-       		 global $db_conn;
-    
-       		 $reviewerID = $_POST['searchReviewerID']; // Assuming the reviewer html works, fetch user input
-    
-   		 $query = oci_parse($db_conn, "SELECT * FROM Review WHERE ReviewerID = :reviewerID");
- 		 oci_bind_by_name($query, ":reviewerID", $reviewerID);
-     		 oci_execute($query);
-    
-       		 $output = "<h2>Reviews by Reviewer ID: $reviewerID</h2>";
-       		 $output .= "<table border='1'>";
-       		 $output .= "<tr><th>Review ID</th><th>Restaurant ID</th><th>Date</th><th>Score</th><th>Comment</th></tr>";
-    
-       		 while ($row = oci_fetch_assoc($query)) {
-           		 $output .= "<tr><td>" . htmlspecialchars($row['REVIEWID']) . "</td>";
-           		 $output .= "<td>" . htmlspecialchars($row['RESTAURANTID']) . "</td>";
-           		 $output .= "<td>" . htmlspecialchars($row['DATE']) . "</td>";
-           		 $output .= "<td>" . htmlspecialchars($row['SCORE']) . "</td>";
-           		 $output .= "<td>" . htmlspecialchars($row['COMMENT']) . "</td></tr>";
-       		 }
-    
-       		 $output .= "</table>";
-       		 echo $output; // Display the built HTML table
-   	 }
-    
+	// backend implementation of selection and projection and display using printResult() - FIXED
+	function handleSelectReviewsByReviewer() {
+		global $db_conn;
+	
+		$reviewerID = $_POST['searchReviewerID']; // Fetch user input
+	
+		$query = oci_parse($db_conn, "SELECT * FROM Review WHERE ReviewerID = :reviewerID ORDER BY \"Date\"");
+		oci_bind_by_name($query, ":reviewerID", $reviewerID);
+	
+		if (!oci_execute($query)) {
+			$e = oci_error($query);
+			echo "Query execution error: " . $e['message'];
+			return;
+		}
+	
+		// Call printResult 
+		printResult($query);
+	}
+	
+	
+	
+   	// backend implementation of deleting a review
+   	function handleDeleteReviewerRequest() {
+    	global $db_conn;
 
-   	 // backend implementation of deleting a review
-   	 function handleDeleteReview() {
-       		 global $db_conn;
-    
-       		 $restaurantID = $_POST['deleteRestaurantID'];
-       		 $reviewerID = $_POST['deleteReviewerID'];
-       		 $date = $_POST['deleteDate']; // Ensure this matches the format in your database
-    
-       		 $query = oci_parse($db_conn, "DELETE FROM Review WHERE RestaurantID = :restaurantID AND ReviewerID = :reviewerID AND Date = TO_DATE(:date, 'YYYY-MM-DD')");
-       		 oci_bind_by_name($query, ":restaurantID", $restaurantID);
-       		 oci_bind_by_name($query, ":reviewerID", $reviewerID);
-       		 oci_bind_by_name($query, ":date", $date);
-       		 oci_execute($query);
-    
-       		 if (oci_num_rows($query) > 0) {
-           		 echo "Review successfully deleted.";
-       		 } else {
-           		 echo "No matching review found to delete.";
-       		 }
-       		 oci_commit($db_conn);
-   	 }
+    	$reviewerID = $_POST['deleteReviewerID']; // Fetch the ReviewerID 
+
+    	//DELETE query for ProfessionalCritic and FoodBlogger
+    	$queries = [
+        	"DELETE FROM ProfessionalCritic WHERE ReviewerID = :reviewerID",
+        	"DELETE FROM FoodBlogger WHERE ReviewerID = :reviewerID",
+        	"DELETE FROM Review WHERE ReviewerID = :reviewerID", // Cascade not working(?), explicitly delete reviews
+        	"DELETE FROM Reviewer WHERE ReviewerID = :reviewerID"
+    	];
+
+    	foreach ($queries as $sql) {
+      		$query = oci_parse($db_conn, $sql);
+     		oci_bind_by_name($query, ":reviewerID", $reviewerID);
+
+        	
+        	if (!oci_execute($query, OCI_NO_AUTO_COMMIT)) {
+            	$e = oci_error($query);
+            	echo "Error executing query: " . $e['message'];
+            	oci_rollback($db_conn); 
+            	return; 
+        	}
+    	}
+
+    	oci_commit($db_conn);
+    	echo "Reviewer and all related data successfully deleted.";
+	}
 
 	// End PHP parsing and send the rest of the HTML content
 	?>
