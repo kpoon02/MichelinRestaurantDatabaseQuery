@@ -103,7 +103,7 @@ CREATE TABLE Review (
     Score INT NOT NULL,
     "Comment" CLOB,
     PRIMARY KEY (ReviewID),
-    FOREIGN KEY (ReviewerID) REFERENCES Reviewer(ReviewerID),
+    FOREIGN KEY (ReviewerID) REFERENCES Reviewer(ReviewerID) ON DELETE CASCADE,
     FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID)
 );
 
