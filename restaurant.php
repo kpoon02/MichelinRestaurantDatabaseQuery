@@ -103,6 +103,20 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	<hr />
 
+	<h2>Display Signature Dishes by Price Range</h2>
+	<form method="GET" action="restaurant.php">
+		<input type="hidden" id="displayJoinRequest" name="displayJoinRequest">
+		<label for="price">Select Price Range:</label>
+		<select id="price" name="price">
+			<option value="$">$</option>
+			<option value="$$">$$</option>
+			<option value="$$$">$$$</option>
+			<option value="$$$$">$$$$</option>
+		</select>
+		<input type="submit" name="displayJoin"></p>
+	</form>
+
+	<hr />
 	<?php
 	// The following code will be parsed as PHP
 
@@ -304,6 +318,31 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		printResult($result);
 	}
 
+	function handleJoinRequest()
+	{
+		global $db_conn;
+
+		$price = $_GET["price"];
+
+		$result = oci_parse($db_conn, "SELECT DISTINCT Name, DishName, PriceRange FROM Restaurant r INNER JOIN SignatureDish s ON  r.RestaurantID = s.RestaurantID WHERE PriceRange = :price");
+   		oci_bind_by_name($result, ":price", $price);
+		oci_execute($result);
+		// $result = executePlainSQL("SELECT r.RestaurantID, s.DishName, r.PriceRange FROM Restaurant r, SignatureDish s WHERE PriceRange = price");
+
+		// $result = executePlainSQL("SELECT r.Name, s.DishName, r.PriceRange FROM Restaurant r INNER JOIN SignatureDish s ON r.RestaurantID = s.RestaurantID WHERE PriceRange = $price);
+
+		$output = "<br>Retrieved data from Joined Restaurant and SignatureDish Tables:<br>";
+		$output .= "<table border='1'>";
+		$output .= "<tr><th>Restaurant</th><th>Signature Dish</th><th>Price Range</th></tr>";
+
+		while ($row = oci_fetch_assoc($result)) {
+			$output .= "<tr><td>" . $row["NAME"] . "</td><td>" . $row["DISHNAME"] . "</td><td>" . $row["PRICERANGE"] . "</td></tr>"; 
+		}
+
+		$output .= "</table>";
+		echo $output;
+	}
+
 	// HANDLE ALL POST ROUTES
 	// A better coding practice is to have one method that reroutes your requests accordingly. It will make it easier to add/remove functionality.
 	function handlePOSTRequest()
@@ -328,6 +367,8 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 				handleGroupByRequest();
 			} elseif (array_key_exists('displayTuples', $_GET)) {
 				handleDisplayRequest();
+			} elseif (array_key_exists('displayJoin', $_GET)) {
+				handleJoinRequest();
 			}
 
 			disconnectFromDB();
@@ -336,7 +377,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	if (isset($_POST['reset'])) {
 		handlePOSTRequest();
-	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['groupByRequest'])) {
+	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['groupByRequest']) || isset($_GET['displayJoinRequest'])) {
 		handleGETRequest();
 	}
 	// End PHP parsing and send the rest of the HTML content
