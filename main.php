@@ -186,6 +186,15 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	<hr />
 
+	<!-- Division, all reviewers that have reviewed all restaurants-->
+	<h2>Display All Reviewers that have reviewed all restaurants</h2>
+	<form method="GET" action="main.php">
+		<input type="hidden" id="displayDivisionRequest" name="displayDivisionRequest">
+		<input type="submit" name="displayDivision"></p>
+	</form>
+
+	<hr />
+
 	<?php
 	// The following code will be parsed as PHP
 
@@ -274,7 +283,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		echo "<br>Retrieved data from table Review:<br>";
 		
 		while ($review = OCI_Fetch_Array($result, OCI_ASSOC)) {
-			// var_dump($review);
 			echo "<div class='review' style='border: 1px solid; padding: 10px; word-wrap: break-word;'>";
 			echo "<p><b>ReviewID:</b> {$review["REVIEWID"]}</p>";
 			echo "<p><b>RestaurantID:</b> {$review["RESTAURANTID"]}</p>";
@@ -287,6 +295,18 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 				$comment = NULL;
 			}
 			echo "<p><b>Comment:</b> $comment</p>";
+			echo "</div>";
+		}
+	}
+
+	//special function for printing division -> problem with existing printResult
+	function printDivisionResult($result) {
+		echo "<br>Reviewers who have reviewed all restaurants:<br>";
+		
+		while ($row = OCI_Fetch_Array($result, OCI_ASSOC)) {
+			echo "<div class='reviewer' style='border: 1px solid; padding: 10px; margin-bottom: 10px;'>";
+			echo "<p><b>ReviewerID:</b> " . htmlspecialchars($row["REVIEWERID"]) . "</p>";
+			echo "<p><b>Name:</b> " . htmlspecialchars($row["NAME"]) . "</p>";
 			echo "</div>";
 		}
 	}
@@ -473,6 +493,8 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 				handleCountRequest();
 			} elseif (array_key_exists('displayTuples', $_GET)) {
 				handleDisplayRequest();
+			} elseif (array_key_exists('displayDivision', $_GET)) { //included division querty 
+				handleDisplayDivisionRequest();
 			}
 
 			disconnectFromDB();
@@ -482,7 +504,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	if (isset($_POST['reset']) || isset($_POST['updateSubmit']) || isset($_POST['insertSubmit']) || isset($_POST['insertReviewer'])
 	|| isset($_POST['searchReviewsByReviewer']) || isset($_POST['deleteReviewer'])) {
 		handlePOSTRequest();
-	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest'])) {
+	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['displayDivisionRequest'])) {
 		handleGETRequest();
 	}
 
@@ -536,6 +558,40 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
     	oci_commit($db_conn);
     	echo "Reviewer and all related data successfully deleted.";
+	}
+
+
+	//backend implementation of division query
+	function handleDisplayDivisionRequest() {
+		global $db_conn;
+		
+		// total number of restaurants
+		$totalRestaurantsQuery = oci_parse($db_conn, "SELECT COUNT(*) AS TOTAL FROM Restaurant");
+		if (!oci_execute($totalRestaurantsQuery)) {
+			$e = oci_error($totalRestaurantsQuery);
+			echo "Error getting total number of restaurants: " . $e['message'];
+			return;
+		}
+		$row = oci_fetch_assoc($totalRestaurantsQuery);
+		$totalRestaurants = $row['TOTAL'];
+
+		$query = oci_parse($db_conn, "
+			SELECT Reviewer.ReviewerID, Reviewer.Name
+			FROM Reviewer
+			JOIN Review ON Reviewer.ReviewerID = Review.ReviewerID
+			GROUP BY Reviewer.ReviewerID, Reviewer.Name
+			HAVING COUNT(DISTINCT Review.RestaurantID) = :totalRestaurants
+		");
+		oci_bind_by_name($query, ":totalRestaurants", $totalRestaurants);
+	
+		if (!oci_execute($query)) {
+			$e = oci_error($query);
+			echo "Query execution error: " . $e['message'];
+			return;
+		}
+	
+		// Call printDivisionResult to output the results, names after join for division not working I think
+		printDivisionResult($query);
 	}
 
 	// End PHP parsing and send the rest of the HTML content
