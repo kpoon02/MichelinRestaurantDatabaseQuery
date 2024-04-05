@@ -131,13 +131,34 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	<hr />
 	
 
-   	 <!-- Projection and selection, select all reviews fiven a RiviewerID -->
+   	 <!-- Selection, select all reviews fiven a RiviewerID -->
    	 <h2>Search Reviews by Reviewer</h2>
    	 <form method="POST" action="main.php">
        	 Reviewer ID: <input type="text" name="searchReviewerID" required>
        	 <input type="submit" name="searchReviewsByReviewer" value="Search">
    	 </form>
    	 <hr />
+
+	 <!-- projection, project restaurants with user chosen attributes -->
+	 <h2>Display Restaurants with Selected Attributes</h2>
+	<form method="POST" action="main.php">
+    <input type="hidden" name="displayProjectionRequest">
+    <p>Select attributes to display:</p>
+    <input type="checkbox" id="name" name="attributes[]" value="Name" checked disabled>
+    <label for="name">Name (always displayed)</label><br>
+    <input type="checkbox" id="website" name="attributes[]" value="Website">
+    <label for="website">Website</label><br>
+    <input type="checkbox" id="priceRange" name="attributes[]" value="PriceRange">
+    <label for="priceRange">Price Range</label><br>
+    <input type="checkbox" id="address" name="attributes[]" value="Address">
+    <label for="address">Address</label><br>
+    <input type="checkbox" id="averageScore" name="attributes[]" value="AverageScore">
+    <label for="averageScore">Average Score</label><br>
+    <input type="submit" value="Display" name="displayProjectionSubmit">
+	</form>
+	<hr />
+	
+	<hr />
 
    	 <!-- Deletion, Delete a reviewer and respective reviews given reviewerID-->
    	 <h2>Delete a Reviewer Account</h2>
@@ -270,6 +291,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		}	
 	}
 
+	//function for displaying selection query
 	function printResult($result)
 	{ //prints results from a select statement
 		echo "<br>Retrieved data from table Review:<br>";
@@ -290,6 +312,37 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 			echo "</div>";
 		}
 	}
+
+	//function for displaying projection query
+	function printRestaurantAttributesResult($result, $attributes) {
+		echo "<br>Retrieved Restaurant Data:<br>";
+		echo "<table border='1'>";
+	
+		// Header
+		echo "<tr>";
+		foreach ($attributes as $attribute) {
+			echo "<th>" . htmlspecialchars($attribute) . "</th>";
+		}
+		echo "</tr>";
+	
+		// Rows
+		while ($restaurant = OCI_Fetch_Array($result, OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS)) {
+			echo "<tr>";
+			foreach ($attributes as $attribute) {
+				$attributeUpper = strtoupper($attribute);
+				if (array_key_exists($attributeUpper, $restaurant)) {
+					$data = $restaurant[$attributeUpper] !== null ? htmlspecialchars($restaurant[$attributeUpper]) : "(No data)";
+					echo "<td>" . $data . "</td>";
+				} else {
+					echo "<td>(Attribute not found)</td>";
+				}
+			}
+			echo "</tr>";
+		}
+		echo "</table>";
+	}
+	
+	
 
 	//special function for printing division -> problem with existing printResult
 	function printDivisionResult($result) {
@@ -464,13 +517,15 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 				handleUpdateRequest();
 			} else if (array_key_exists('insertQueryRequest', $_POST)) {
 				handleInsertReviewRequest();
-			} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //included selection+projection query
+			} else if (array_key_exists('searchReviewsByReviewer', $_POST)) { //included selection query
 				handleSelectReviewsByReviewer();
 			} else if (array_key_exists('deleteReviewer', $_POST)) { //included delete query
 				handleDeleteReviewerRequest();
 			} else if (array_key_exists('insertReviewer', $_POST)) { //included insert query
 				handleInsertReviewerRequest();
-			} // Removed the duplicated searchReviewsByReviewer
+			}  if (array_key_exists('displayProjectionSubmit', $_POST)) { //included projection query
+				handleDisplayRestaurantsProjection();
+			} 
 	
 			disconnectFromDB();
 		}
@@ -487,20 +542,21 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 				handleDisplayRequest();
 			} elseif (array_key_exists('displayDivision', $_GET)) { //included division querty 
 				handleDisplayDivisionRequest();
-			}
+			} 
 
 			disconnectFromDB();
 		}
 	}
 
 	if (isset($_POST['reset']) || isset($_POST['updateSubmit']) || isset($_POST['insertSubmit']) || isset($_POST['insertReviewer'])
-	|| isset($_POST['searchReviewsByReviewer']) || isset($_POST['deleteReviewer'])) {
+	|| isset($_POST['searchReviewsByReviewer']) || isset($_POST['deleteReviewer']) || isset($_POST['displayProjectionSubmit'])) {
 		handlePOSTRequest();
-	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['displayDivisionRequest'])) {
+	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['displayDivisionRequest'])
+	) {
 		handleGETRequest();
 	}
 
-	// backend implementation of selection and projection and display using printResult() - FIXED
+	// backend implementation of selection and display using printResult() - FIXED
 	function handleSelectReviewsByReviewer() {
 		global $db_conn;
 	
@@ -519,7 +575,28 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		printResult($query);
 	}
 	
+
+	//backend implemetation of projection
+	function handleDisplayRestaurantsProjection() {
+		global $db_conn;
 	
+		$attributes = ['Name'];  // Default attribute
+		if (isset($_POST['attributes'])) {
+			$attributes = array_merge($attributes, $_POST['attributes']);
+		}
+		$attributesList = array_map('strtoupper', $attributes);
+		$attributesListString = implode(", ", $attributesList);
+		$query = oci_parse($db_conn, "SELECT $attributesListString FROM Restaurant");
+	
+		if (!oci_execute($query)) {
+			$e = oci_error($query);
+			echo "Query execution error: " . $e['message'];
+			return;
+		}
+	
+		// Print the results
+		printRestaurantAttributesResult($query, $attributes);
+	}
 	
    	// backend implementation of deleting a review
    	function handleDeleteReviewerRequest() {
