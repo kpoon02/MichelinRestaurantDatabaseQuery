@@ -170,14 +170,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	<hr />
 
-	<h2>Count the Tuples in DemoTable</h2>
-	<form method="GET" action="main.php">
-		<input type="hidden" id="countTupleRequest" name="countTupleRequest">
-		<input type="submit" name="countTuples"></p>
-	</form>
-
-	<hr />
-
 	<h2>Display All Reviews</h2>
 	<form method="GET" action="main.php">
 		<input type="hidden" id="displayTuplesRequest" name="displayTuplesRequest">

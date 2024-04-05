@@ -78,19 +78,27 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	</form>
 
 	<hr />
-
-	<h2>Count the Tuples in DemoTable</h2>
-	<form method="GET" action="restaurant.php">
-		<input type="hidden" id="countTupleRequest" name="countTupleRequest">
-		<input type="submit" name="countTuples"></p>
-	</form>
-
-	<hr />
 	
 	<h2>Highest Restaurant Rating Grouped By Cuisine</h2>
 	<form method="GET" action="restaurant.php">
 		<input type="hidden" id="groupByRequest" name="groupByRequest">
 		<input type="submit" name="groupBy"></p>
+	</form>
+
+	<hr />
+
+	<h2>Number of Restaurants by Award Category (At Least 1 Restaurant)</h2>
+	<form method="GET" action="restaurant.php">
+		<input type="hidden" id="groupByHavingRequest" name="groupByHavingRequest">
+		<input type="submit" name="groupByHaving"></p>
+	</form>
+
+	<hr />
+
+	<h2>Restaurant with Highest Rating By Price Range</h2>
+	<form method="GET" action="restaurant.php">
+		<input type="hidden" id="nestedGroupByRequest" name="nestedGroupByRequest">
+		<input type="submit" name="nestedGroupBy"></p>
 	</form>
 
 	<hr />
@@ -300,7 +308,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		$result = executePlainSQL("SELECT CuisineID, MAX(AverageScore) FROM Restaurant GROUP BY CuisineID");
 
-		echo "<br>Retrieved data from table demoTable:<br>";
+		echo "<br>Retrieved data from Restaurant table:<br>";
 		echo "<table>";
 		echo "<tr><th>CuisineID</th><th>Max Rating	</th></tr>";
 
@@ -309,6 +317,48 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		}
 
 		echo "</table>";
+	}
+
+	function handleGroupByHavingRequest() {
+		global $db_conn;
+		
+
+		$result = oci_parse($db_conn, "SELECT A.Name, A.MichelinRating, COUNT(R.RestaurantID) FROM Award A INNER JOIN Restaurant R ON A.RestaurantID = R.RestaurantID GROUP BY A.Name, A.MichelinRating HAVING COUNT(R.RestaurantID) > 0");
+		oci_execute($result);
+
+		$output = "<br>Retrieved data from Restaurant and Award tables:<br>";
+		$output .= "<table border='1'>";
+		$output .= "<tr><th>Award Name</th><th>Michelin Stars</th><th># of Restaurants</th></tr>";
+
+		while ($row = oci_fetch_assoc($result)) {
+			$output .= "<tr><td>" . $row["NAME"] . "</td><td>" . $row["MICHELINRATING"] . "</td><td>" . $row["COUNT(R.RESTAURANTID)"] . "</td></tr>"; 
+		}
+
+		$output .= "</table>";
+		echo $output;
+	}
+
+	function handleNestedGroupByRequest() {
+		global $db_conn;
+		
+
+		// $result = oci_parse($db_conn, "SELECT r.Name, r.CuisineID, COUNT(*) FROM Restaurant r INNER JOIN Review rev ON r.RestaurantID = rev.RestaurantID GROUP BY r.CuisineID, r.Name HAVING COUNT(*) >= ALL (SELECT COUNT(*) FROM Review WHERE RestaurantID IN (SELECT RestaurantID FROM Restaurant WHERE CuisineID = r.CuisineID))");
+		
+
+		$result = oci_parse($db_conn, "SELECT MAX(r.Name), r.PriceRange, MAX(r.AverageScore) FROM Restaurant r WHERE r.AverageScore = (SELECT MAX(AverageScore) FROM Restaurant WHERE PriceRange = r.PriceRange) GROUP BY r.PriceRange ORDER BY r.PriceRange ASC");
+
+		oci_execute($result);
+
+		$output = "<br>Retrieved data from Restaurant table:<br>";
+		$output .= "<table border='1'>";
+		$output .= "<tr><th>Restaurant</th><th>Price Range</th><th>Rating</th></tr>";
+
+		while ($row = oci_fetch_assoc($result)) {
+			$output .= "<tr><td>" . $row["MAX(R.NAME)"] . "</td><td>" . $row["PRICERANGE"] . "</td><td>" . $row["MAX(R.AVERAGESCORE)"] . "</td></tr>"; 
+		}
+
+		$output .= "</table>";
+		echo $output;
 	}
 
 	function handleDisplayRequest()
@@ -324,14 +374,14 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		$price = $_GET["price"];
 
-		$result = oci_parse($db_conn, "SELECT DISTINCT Name, DishName, PriceRange FROM Restaurant r INNER JOIN SignatureDish s ON  r.RestaurantID = s.RestaurantID WHERE PriceRange = :price");
+		$result = oci_parse($db_conn, "SELECT DISTINCT Name, DishName, PriceRange FROM Restaurant r INNER JOIN SignatureDish s ON r.RestaurantID = s.RestaurantID WHERE PriceRange = :price");
    		oci_bind_by_name($result, ":price", $price);
 		oci_execute($result);
 		// $result = executePlainSQL("SELECT r.RestaurantID, s.DishName, r.PriceRange FROM Restaurant r, SignatureDish s WHERE PriceRange = price");
 
 		// $result = executePlainSQL("SELECT r.Name, s.DishName, r.PriceRange FROM Restaurant r INNER JOIN SignatureDish s ON r.RestaurantID = s.RestaurantID WHERE PriceRange = $price);
 
-		$output = "<br>Retrieved data from Joined Restaurant and SignatureDish Tables:<br>";
+		$output = "<br>Retrieved data from Restaurant and SignatureDish Tables:<br>";
 		$output .= "<table border='1'>";
 		$output .= "<tr><th>Restaurant</th><th>Signature Dish</th><th>Price Range</th></tr>";
 
@@ -369,6 +419,10 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 				handleDisplayRequest();
 			} elseif (array_key_exists('displayJoin', $_GET)) {
 				handleJoinRequest();
+			} elseif (array_key_exists('groupByHaving', $_GET)) {
+				handleGroupByHavingRequest();
+			} elseif (array_key_exists('nestedGroupBy', $_GET)) {
+				handleNestedGroupByRequest();
 			}
 
 			disconnectFromDB();
@@ -377,7 +431,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	if (isset($_POST['reset'])) {
 		handlePOSTRequest();
-	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['groupByRequest']) || isset($_GET['displayJoinRequest'])) {
+	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['groupByRequest']) || isset($_GET['displayJoinRequest']) || isset($_GET['groupByHavingRequest']) || isset($_GET['nestedGroupByRequest'])) {
 		handleGETRequest();
 	}
 	// End PHP parsing and send the rest of the HTML content
