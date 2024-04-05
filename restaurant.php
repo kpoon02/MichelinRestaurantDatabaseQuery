@@ -87,9 +87,11 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	<hr />
 
-	<h2>Number of Restaurants by Award Category (At Least 1 Restaurant)</h2>
+	<h2>Award Categories with Minimum Number of Restaurants</h2>
 	<form method="GET" action="restaurant.php">
 		<input type="hidden" id="groupByHavingRequest" name="groupByHavingRequest">
+		<label for="minimum">Enter minimum number of restaurants:</label>
+		<input type="number" min=0 name="minimum" required> <br /><br />
 		<input type="submit" name="groupByHaving"></p>
 	</form>
 
@@ -146,7 +148,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		//There are a set of comments at the end of the file that describe some of the OCI specific functions and how they work
 
 		if (!$statement) {
-			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
+			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";	
 			$e = OCI_Error($db_conn); // For oci_parse errors pass the connection handle
 			echo htmlentities($e['message']);
 			$success = False;
@@ -322,8 +324,10 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	function handleGroupByHavingRequest() {
 		global $db_conn;
 		
+		$minimum = $_GET["minimum"];
 
-		$result = oci_parse($db_conn, "SELECT A.Name, A.MichelinRating, COUNT(R.RestaurantID) FROM Award A INNER JOIN Restaurant R ON A.RestaurantID = R.RestaurantID GROUP BY A.Name, A.MichelinRating HAVING COUNT(R.RestaurantID) > 0");
+		$result = oci_parse($db_conn, "SELECT A.Name, A.MichelinRating, COUNT(R.RestaurantID) FROM Award A INNER JOIN Restaurant R ON A.RestaurantID = R.RestaurantID GROUP BY A.Name, A.MichelinRating HAVING COUNT(R.RestaurantID) >= :minimum");
+		oci_bind_by_name($result, ":minimum", $minimum);
 		oci_execute($result);
 
 		$output = "<br>Retrieved data from Restaurant and Award tables:<br>";
@@ -340,10 +344,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	function handleNestedGroupByRequest() {
 		global $db_conn;
-		
-
-		// $result = oci_parse($db_conn, "SELECT r.Name, r.CuisineID, COUNT(*) FROM Restaurant r INNER JOIN Review rev ON r.RestaurantID = rev.RestaurantID GROUP BY r.CuisineID, r.Name HAVING COUNT(*) >= ALL (SELECT COUNT(*) FROM Review WHERE RestaurantID IN (SELECT RestaurantID FROM Restaurant WHERE CuisineID = r.CuisineID))");
-		
 
 		$result = oci_parse($db_conn, "SELECT MAX(r.Name), r.PriceRange, MAX(r.AverageScore) FROM Restaurant r WHERE r.AverageScore = (SELECT MAX(AverageScore) FROM Restaurant WHERE PriceRange = r.PriceRange) GROUP BY r.PriceRange ORDER BY r.PriceRange ASC");
 
@@ -377,10 +377,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		$result = oci_parse($db_conn, "SELECT DISTINCT Name, DishName, PriceRange FROM Restaurant r INNER JOIN SignatureDish s ON r.RestaurantID = s.RestaurantID WHERE PriceRange = :price");
    		oci_bind_by_name($result, ":price", $price);
 		oci_execute($result);
-		// $result = executePlainSQL("SELECT r.RestaurantID, s.DishName, r.PriceRange FROM Restaurant r, SignatureDish s WHERE PriceRange = price");
-
-		// $result = executePlainSQL("SELECT r.Name, s.DishName, r.PriceRange FROM Restaurant r INNER JOIN SignatureDish s ON r.RestaurantID = s.RestaurantID WHERE PriceRange = $price);
-
+		
 		$output = "<br>Retrieved data from Restaurant and SignatureDish Tables:<br>";
 		$output .= "<table border='1'>";
 		$output .= "<tr><th>Restaurant</th><th>Signature Dish</th><th>Price Range</th></tr>";
