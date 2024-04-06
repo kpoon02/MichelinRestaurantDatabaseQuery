@@ -157,8 +157,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
     <input type="submit" value="Display" name="displayProjectionSubmit">
 	</form>
 	<hr />
-	
-	<hr />
 
    	 <!-- Deletion, Delete a reviewer and respective reviews given reviewerID-->
    	 <h2>Delete a Reviewer Account</h2>
