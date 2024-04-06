@@ -28,8 +28,8 @@ error_reporting(E_ALL);
 // Set some parameters
 
 // Database access configuration
-$config["dbuser"] = "ora_ikblasco";			// change "cwl" to your own CWL
-$config["dbpassword"] = "a93863819";	// change to 'a' + your student number
+$config["dbuser"] = "ora_kpoon02";			// change "cwl" to your own CWL
+$config["dbpassword"] = "a90607425";	// change to 'a' + your student number
 $config["dbserver"] = "dbhost.students.cs.ubc.ca:1522/stu";
 $db_conn = NULL;	// login credentials are used in connectToDB()
 
@@ -229,7 +229,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		//There are a set of comments at the end of the file that describe some of the OCI specific functions and how they work
 
 		if (!$statement) {
-			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
+			// echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
 			$e = OCI_Error($db_conn); // For oci_parse errors pass the connection handle
 			echo htmlentities($e['message']);
 			$success = False;
@@ -237,7 +237,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		$r = oci_execute($statement, OCI_DEFAULT);
 		if (!$r) {
-			echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+			// echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
 			$e = oci_error($statement); // For oci_execute errors pass the statementhandle
 			echo htmlentities($e['message']);
 			$success = False;
@@ -257,7 +257,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		$statement = oci_parse($db_conn, $cmdstr);
 
 		if (!$statement) {
-			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
+			// echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
 			$e = OCI_Error($db_conn);
 			echo htmlentities($e['message']);
 			$success = False;
@@ -273,7 +273,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 			$r = oci_execute($statement, OCI_DEFAULT);
 			if (!$r) {
-				echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+				// echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
 				$e = OCI_Error($statement); // For oci_execute errors, pass the statementhandle
 				echo htmlentities($e['message']);
 				echo "<br>";
@@ -387,7 +387,19 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	function handleUpdateRequest()
 	{
-		global $db_conn;
+		global $db_conn, $success;
+
+		// check if a review exists
+		$reviewerID = $_POST['oldReviewerID'];
+		$reviewID = $_POST['oldReviewID'];
+
+		$result = executePlainSQL("SELECT * FROM Review WHERE ReviewerID=$reviewerID AND ReviewID=$reviewID");
+
+		if (($row = oci_fetch_row($result)) == false) {
+			echo "Review not found.";
+			return;
+		}
+
 
 		$tuple = array(
 			":bind1" => $_POST['oldReviewerID'],
@@ -411,6 +423,12 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		WHERE ReviewerID=:bind1 AND ReviewID=:bind2", $alltuples);
 
 		oci_commit($db_conn);
+
+		if ($success) {
+			echo "Successfully updated review.";
+		} else {
+			echo "Error updating review.";
+		};
 	}
 
 	function handleResetRequest()
@@ -424,7 +442,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 	function handleInsertReviewRequest()
 	{
-		global $db_conn;
+		global $db_conn, $success;
 
 		//Getting the values from user and insert data into the table
 		$tuple = array(
@@ -441,6 +459,12 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		executeBoundSQL("INSERT INTO Review VALUES (NULL, :bind1, :bind2, TO_DATE(:bind3, 'YYYY-MM-DD'), :bind4, :bind5)", $alltuples);
 		oci_commit($db_conn);
+		
+		if ($success) {
+			echo "Successfully added review.";
+		} else {
+			echo "Error adding review.";
+		};
 	}
 	
 
@@ -488,18 +512,6 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
    		 echo "Reviewer added successfully";
 		}
 
-
-	function handleCountRequest()
-	{
-		global $db_conn;
-
-		$result = executePlainSQL("SELECT Count(*) FROM demoTable");
-
-		if (($row = oci_fetch_row($result)) != false) {
-			echo "<br> The number of tuples in demoTable: " . $row[0] . "<br>";
-		}
-	}
-
 	function handleDisplayRequest()
 	{
 		global $db_conn;
@@ -536,9 +548,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	function handleGETRequest()
 	{
 		if (connectToDB()) {
-			if (array_key_exists('countTuples', $_GET)) {
-				handleCountRequest();
-			} elseif (array_key_exists('displayTuples', $_GET)) {
+			if (array_key_exists('displayTuples', $_GET)) {
 				handleDisplayRequest();
 			} elseif (array_key_exists('displayDivision', $_GET)) { //included division querty 
 				handleDisplayDivisionRequest();
@@ -551,7 +561,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 	if (isset($_POST['reset']) || isset($_POST['updateSubmit']) || isset($_POST['insertSubmit']) || isset($_POST['insertReviewer'])
 	|| isset($_POST['searchReviewsByReviewer']) || isset($_POST['deleteReviewer']) || isset($_POST['displayProjectionSubmit'])) {
 		handlePOSTRequest();
-	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest']) || isset($_GET['displayDivisionRequest'])
+	} else if (isset($_GET['displayTuplesRequest']) || isset($_GET['displayDivisionRequest'])
 	) {
 		handleGETRequest();
 	}

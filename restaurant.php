@@ -148,7 +148,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		//There are a set of comments at the end of the file that describe some of the OCI specific functions and how they work
 
 		if (!$statement) {
-			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";	
+			// echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";	
 			$e = OCI_Error($db_conn); // For oci_parse errors pass the connection handle
 			echo htmlentities($e['message']);
 			$success = False;
@@ -156,7 +156,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		$r = oci_execute($statement, OCI_DEFAULT);
 		if (!$r) {
-			echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+			// echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
 			$e = oci_error($statement); // For oci_execute errors pass the statementhandle
 			echo htmlentities($e['message']);
 			$success = False;
@@ -176,7 +176,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 		$statement = oci_parse($db_conn, $cmdstr);
 
 		if (!$statement) {
-			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
+			// echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
 			$e = OCI_Error($db_conn);
 			echo htmlentities($e['message']);
 			$success = False;
@@ -192,7 +192,7 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 			$r = oci_execute($statement, OCI_DEFAULT);
 			if (!$r) {
-				echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+				// echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
 				$e = OCI_Error($statement); // For oci_execute errors, pass the statementhandle
 				echo htmlentities($e['message']);
 				echo "<br>";
@@ -310,15 +310,28 @@ $show_debug_alert_messages = False; // show which methods are being triggered (s
 
 		$result = executePlainSQL("SELECT CuisineID, MAX(AverageScore) FROM Restaurant GROUP BY CuisineID");
 
-		echo "<br>Retrieved data from Restaurant table:<br>";
-		echo "<table>";
-		echo "<tr><th>CuisineID</th><th>Max Rating	</th></tr>";
+		$output = "<br>Retrieved data from Restaurant table:<br>";
+		$output .= "<table>";
+		$output .= "<tr><th>CuisineID</th><th>Max Rating	</th></tr>";
 
 		while ($row = OCI_Fetch_Array($result, OCI_ASSOC)) {
-			echo "<tr><td>" . $row["CUISINEID"] . "</td><td>" . $row["MAX(AVERAGESCORE)"] . "</td></tr>"; //or just use "echo $row[0]"
+			$output .= "<tr><td>" . $row["CUISINEID"] . "</td><td>" . $row["MAX(AVERAGESCORE)"] . "</td></tr>"; //or just use "echo $row[0]"
 		}
 
-		echo "</table>";
+		$output .= "</table>";
+
+		$result = executePlainSQL("SELECT * FROM Cuisine");
+
+		$output .= "<br>Cuisine Table for Reference:<br>";
+		$output .= "<table>";
+		$output .= "<tr><th>CuisineID</th><th>Name</th><th>Description</th></tr>";
+
+		while ($row = OCI_Fetch_Array($result, OCI_ASSOC)) {
+			$output .= "<tr><td>" . $row["CUISINEID"] . "</td><td>" . $row["NAME"] . "</td><td>" . $row["DESCRIPTION"] . "</td></tr>"; //or just use "echo $row[0]"
+		}
+		
+		$output .= "</table>";
+		echo $output;
 	}
 
 	function handleGroupByHavingRequest() {
